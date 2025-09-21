@@ -1,3 +1,4 @@
+from os import posix_fallocate
 import pygame as pg
 
 # this needs to be on top
@@ -10,6 +11,8 @@ running = True
 
 # window
 window = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT ))
+player = pg.image.load("./assets/imgs/alien.png")
+player = pg.transform.scale(player, (150, 150))
 
 # game loop 
 while running: 
@@ -20,5 +23,7 @@ while running:
 
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame
+  window.blit(player, (50, 50))
+  pg.display.update()
 
 pg.quit()

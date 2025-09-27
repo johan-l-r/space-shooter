@@ -30,7 +30,7 @@ asteroids = []
 
 asteroid_size = 150
 
-SPAWN_TIME = 100
+SPAWN_TIME = 70
 spawn_timer = 0
 
 asteroid_surface = pg.image.load(join("assets/imgs", "asteroid.png")).convert_alpha()
@@ -82,6 +82,10 @@ while running:
 
   for asteroid in asteroids:
     asteroid.x -= asteroid_speed
+
+    if asteroid.x < -asteroid_size: 
+      asteroid.y = randint(0, WINDOW_HEIGHT - asteroid_size)
+      asteroid.x = WINDOW_WIDTH
 
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame

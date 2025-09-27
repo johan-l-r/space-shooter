@@ -25,6 +25,14 @@ player_y_pos = (WINDOW_HEIGHT - 150) / 2 # set pos to center of y axis
 player_speed = 5
 player_y_direction = 0
 
+# asteroids 
+asteroids = []
+asteroid_size = 150
+
+asteroid_surface = pg.image.load(join("assets/imgs", "asteroid.png")).convert_alpha()
+asteroid_surface = pg.transform.scale(asteroid_surface, (asteroid_size, asteroid_size))
+asteroid_rect = asteroid_surface.get_frect(center = (WINDOW_WIDTH, randint(0, WINDOW_HEIGHT - asteroid_size)))
+
 # game loop 
 while running: 
   for event in pg.event.get(): # get "unlistened" events
@@ -44,17 +52,20 @@ while running:
         player_y_direction = 0
       
   # UPDATE GAME
-  player_rect.y += player_speed * player_y_direction
-
   if player_rect.y  < 0: 
     player_rect.y = player_rect.y = 0
   if player_rect.y > WINDOW_HEIGHT - PLAYER_SIZE:
     player_rect.y = WINDOW_HEIGHT - PLAYER_SIZE
 
+  player_rect.y += player_speed * player_y_direction
+
+  asteroid_rect.x -= 2
+
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame
 
   window.blit(player_surface, player_rect)
+  window.blit(asteroid_surface, asteroid_rect)
 
   pg.display.update()
 

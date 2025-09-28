@@ -10,11 +10,17 @@ pg.init()
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
 # game management
+COMPLETE_ROUND = pg.USEREVENT + 1
+START_NEW_ROUND = pg.USEREVENT + 2
+
 running = True
+round_completed = False 
 
 round = 1
 
 window = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT ), pg.SRCALPHA)
+
+font = pg.font.Font("./assets/fonts/Spaceton.otf", 74)
 
 # player 
 PLAYER_SIZE = 100
@@ -65,11 +71,19 @@ def spawn_asteroid():
 
     spawn_timer = 0
 
+pg.event.post(pg.event.Event(COMPLETE_ROUND))
 # game loop 
 while running: 
   for event in pg.event.get(): # get "unlistened" events
     if event.type == pg.QUIT: # end game when window closed
       running = False
+
+    if event.type == COMPLETE_ROUND:
+      round_completed = True
+      pg.time.set_timer(START_NEW_ROUND, 3000)
+
+    if event.type == START_NEW_ROUND:
+      round_completed = False
 
     if event.type == pg.KEYDOWN:
       if event.key == pg.K_w:
@@ -104,8 +118,11 @@ while running:
   player_rect.y += player_speed * player_y_direction
   player_rect.x += player_speed * player_x_direction
 
+  if len(asteroids) == max_asteroids - 1: 
+    round += 1
+    asteroids.clear()
 
-  
+    pg.event.post(pg.event.Event(COMPLETE_ROUND))
 
   spawn_asteroid()
 
@@ -124,6 +141,13 @@ while running:
 
   for rect, surface, _ in asteroids: 
     window.blit(surface, rect)
+
+  if round_completed:
+    font_surface = font.render(f"round: {round}", True, (255, 255, 255))
+    window.blit(
+      font_surface,
+      font_surface.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,))
+    )
 
   window.blit(player_surface, player_rect)
 

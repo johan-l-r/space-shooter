@@ -27,15 +27,20 @@ player_y_direction = 0
 player_x_direction = 0
 
 # game management
+round = 1
 
 # asteroids 
-asteroid_surface = pg.image.load(join("assets/imgs", "asteroid.png")).convert_alpha()
 SPAWN_TIME = 70
+ASTEROID_MIN_SIZE = 100
+
+GROWTH_FACTOR = 2
+asteroid_max_size = round * ASTEROID_MIN_SIZE * GROWTH_FACTOR
+max_asteroids = 30
 spawn_timer = 0
 
-max_asteroids = 30
-
 asteroids = []
+
+asteroid_surface = pg.image.load(join("assets/imgs", "asteroid.png")).convert_alpha()
 
 def spawn_asteroid():
   global spawn_timer 
@@ -43,7 +48,8 @@ def spawn_asteroid():
   spawn_timer += 0.1
 
   if spawn_timer >= SPAWN_TIME and len(asteroids) <= max_asteroids: 
-    size = random.randint(100, 200)
+    size = random.uniform(ASTEROID_MIN_SIZE, asteroid_max_size)
+    speed = 200 / size
 
     asteroid_surface = pg.transform.scale(asteroid_surface, (size, size))
 
@@ -54,7 +60,7 @@ def spawn_asteroid():
       asteroid_surface.get_frect().height
     )
 
-    asteroids.append((asteroid, asteroid_surface))
+    asteroids.append((asteroid, asteroid_surface, speed))
 
     spawn_timer = 0
 
@@ -99,13 +105,13 @@ while running:
 
   spawn_asteroid()
 
-  for rect, _ in asteroids: 
-    rect.x -= 2
+  for rect, _, speed in asteroids: 
+    rect.x -= speed
 
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame
 
-  for rect, surface in asteroids: 
+  for rect, surface, _ in asteroids: 
     window.blit(surface, rect)
 
   window.blit(player_surface, player_rect)

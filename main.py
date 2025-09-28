@@ -1,17 +1,19 @@
 from typing import Concatenate
 import pygame as pg
 from os.path import join
+import time 
 import random
 
 # this needs to be on top
 pg.init()
 
-# CONSTANTS
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
+# game management
 running = True
 
-# window
+round = 1
+
 window = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT ), pg.SRCALPHA)
 
 # player 
@@ -26,16 +28,14 @@ player_speed = 5
 player_y_direction = 0
 player_x_direction = 0
 
-# game management
-round = 1
 
 # asteroids 
-SPAWN_TIME = 70
+SPAWN_TIME = 150
 ASTEROID_MIN_SIZE = 100
 
 GROWTH_FACTOR = 2
 asteroid_max_size = round * ASTEROID_MIN_SIZE * GROWTH_FACTOR
-max_asteroids = 30
+max_asteroids = 15
 spawn_timer = 0
 
 asteroids = []
@@ -45,6 +45,7 @@ asteroid_surface = pg.image.load(join("assets/imgs", "asteroid.png")).convert_al
 def spawn_asteroid():
   global spawn_timer 
   global asteroid_surface
+
   spawn_timer += 0.1
 
   if spawn_timer >= SPAWN_TIME and len(asteroids) <= max_asteroids: 
@@ -55,7 +56,7 @@ def spawn_asteroid():
 
     asteroid = pg.FRect(
       WINDOW_WIDTH, 
-      random.randint(0, WINDOW_HEIGHT), 
+      random.uniform(0, WINDOW_HEIGHT - size), 
       asteroid_surface.get_frect().width, 
       asteroid_surface.get_frect().height
     )
@@ -103,10 +104,20 @@ while running:
   player_rect.y += player_speed * player_y_direction
   player_rect.x += player_speed * player_x_direction
 
+
+  
+
   spawn_asteroid()
 
+  # move asteroids
   for rect, _, speed in asteroids: 
     rect.x -= speed
+
+  # teleport asteroids
+  for rect, _, speed in asteroids: 
+    if rect.x <  -asteroid_max_size: 
+      rect.y = random.uniform(0, WINDOW_HEIGHT - rect.height)
+      rect.x = WINDOW_WIDTH
 
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame

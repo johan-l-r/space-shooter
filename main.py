@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from typing import Concatenate
 import pygame as pg
 from os.path import join
@@ -22,6 +23,8 @@ window = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT ), pg.SRCALPHA)
 
 font = pg.font.Font("./assets/fonts/Spaceton.otf", 74)
 
+pg.event.post(pg.event.Event(COMPLETE_ROUND))
+
 # player 
 PLAYER_SIZE = 100
 
@@ -34,14 +37,13 @@ player_speed = 5
 player_y_direction = 0
 player_x_direction = 0
 
-
 # asteroids 
 SPAWN_TIME = 150
 ASTEROID_MIN_SIZE = 100
 
-GROWTH_FACTOR = 2
-asteroid_max_size = round * ASTEROID_MIN_SIZE * GROWTH_FACTOR
-max_asteroids = 15
+GROWTH_FACTOR = 50
+asteroid_max_size = 200
+max_asteroids = 10
 spawn_timer = 0
 
 asteroids = []
@@ -71,7 +73,16 @@ def spawn_asteroid():
 
     spawn_timer = 0
 
-pg.event.post(pg.event.Event(COMPLETE_ROUND))
+# background
+bacground = pg.image.load(join("./assets/imgs/", "space.png")).convert()
+stars = pg.image.load(join("./assets/imgs/", "stars.png")).convert_alpha()
+stars = pg.transform.scale(stars, (WINDOW_WIDTH / 1.2, WINDOW_HEIGHT / 1.2))
+
+stars2 = pg.transform.scale(stars, (WINDOW_WIDTH / 1.2, WINDOW_HEIGHT / 1.2))
+
+stars_rect = stars.get_frect(topleft = (0, (WINDOW_HEIGHT - 600) / 2))
+stars_rect2 = stars.get_frect(topleft = (WINDOW_WIDTH, (WINDOW_HEIGHT - 600) / 2))
+
 # game loop 
 while running: 
   for event in pg.event.get(): # get "unlistened" events
@@ -80,7 +91,7 @@ while running:
 
     if event.type == COMPLETE_ROUND:
       round_completed = True
-      pg.time.set_timer(START_NEW_ROUND, 3000)
+      pg.time.set_timer(START_NEW_ROUND, 2000)
 
     if event.type == START_NEW_ROUND:
       round_completed = False
@@ -120,24 +131,42 @@ while running:
 
   if len(asteroids) == max_asteroids - 1: 
     round += 1
+
     asteroids.clear()
+
+    max_asteroids += 5
+    asteroid_max_size += GROWTH_FACTOR
 
     pg.event.post(pg.event.Event(COMPLETE_ROUND))
 
   spawn_asteroid()
 
-  # move asteroids
-  for rect, _, speed in asteroids: 
-    rect.x -= speed
-
+  for rect, _, speed in asteroids:
   # teleport asteroids
-  for rect, _, speed in asteroids: 
     if rect.x <  -asteroid_max_size: 
       rect.y = random.uniform(0, WINDOW_HEIGHT - rect.height)
       rect.x = WINDOW_WIDTH
 
+    # move asteroids
+    rect.x -= speed
+
+  # move stars
+  stars_rect.x -= 2
+  stars_rect2.x -= 2
+
+  if stars_rect.x < -stars_rect.width: 
+    stars_rect.x = WINDOW_WIDTH
+
+  if stars_rect2.x < -stars_rect2.width: 
+    stars_rect2.x = WINDOW_WIDTH
+
   # DRAW GAME
   window.fill((0, 0, 0)) # fill the window with black every frame
+
+  window.blit(bacground)
+
+  window.blit(stars, stars_rect)
+  window.blit(stars2, stars_rect2)
 
   for rect, surface, _ in asteroids: 
     window.blit(surface, rect)

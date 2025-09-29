@@ -13,9 +13,11 @@ WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 # game management
 COMPLETE_ROUND = pg.USEREVENT + 1
 START_NEW_ROUND = pg.USEREVENT + 2
+GAME_OVER = pg.USEREVENT + 3
 
 running = True
 round_completed = False 
+player_killed = False
 
 round = 1
 
@@ -74,6 +76,7 @@ def spawn_asteroid():
     spawn_timer = 0
 
 # background
+stars_speed = 1.5
 bacground = pg.image.load(join("./assets/imgs/", "space.png")).convert()
 stars = pg.image.load(join("./assets/imgs/", "stars.png")).convert_alpha()
 stars = pg.transform.scale(stars, (WINDOW_WIDTH / 1.2, WINDOW_HEIGHT / 1.2))
@@ -82,6 +85,10 @@ stars2 = pg.transform.scale(stars, (WINDOW_WIDTH / 1.2, WINDOW_HEIGHT / 1.2))
 
 stars_rect = stars.get_frect(topleft = (0, (WINDOW_HEIGHT - 600) / 2))
 stars_rect2 = stars.get_frect(topleft = (WINDOW_WIDTH, (WINDOW_HEIGHT - 600) / 2))
+
+# game over
+game_over = pg.image.load(join("./assets/imgs/", "game_over.png")).convert()
+game_over = pg.transform.scale(game_over, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # game loop 
 while running: 
@@ -95,6 +102,9 @@ while running:
 
     if event.type == START_NEW_ROUND:
       round_completed = False
+
+    if event.type == GAME_OVER:
+      player_killed = True
 
     if event.type == pg.KEYDOWN:
       if event.key == pg.K_w:
@@ -129,16 +139,6 @@ while running:
   player_rect.y += player_speed * player_y_direction
   player_rect.x += player_speed * player_x_direction
 
-  if len(asteroids) == max_asteroids - 1: 
-    round += 1
-
-    asteroids.clear()
-
-    max_asteroids += 5
-    asteroid_max_size += GROWTH_FACTOR
-
-    pg.event.post(pg.event.Event(COMPLETE_ROUND))
-
   spawn_asteroid()
 
   for rect, _, speed in asteroids:
@@ -150,9 +150,22 @@ while running:
     # move asteroids
     rect.x -= speed
 
+    if len(asteroids) == max_asteroids - 1:
+      round += 1
+
+      asteroids.clear()
+
+      max_asteroids += 3
+      asteroid_max_size += GROWTH_FACTOR
+
+      pg.event.post(pg.event.Event(COMPLETE_ROUND))
+
+    if player_rect.colliderect(rect):
+      pg.event.post(pg.event.Event(GAME_OVER))
+
   # move stars
-  stars_rect.x -= 2
-  stars_rect2.x -= 2
+  stars_rect.x -= stars_speed
+  stars_rect2.x -= stars_speed
 
   if stars_rect.x < -stars_rect.width: 
     stars_rect.x = WINDOW_WIDTH
@@ -173,12 +186,29 @@ while running:
 
   if round_completed:
     font_surface = font.render(f"round: {round}", True, (255, 255, 255))
+
     window.blit(
       font_surface,
       font_surface.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,))
     )
 
   window.blit(player_surface, player_rect)
+
+  if player_killed: 
+    window.blit(game_over)
+    font_surface = font.render("game over", True, (255, 255, 255))
+
+    window.blit(
+      font_surface,
+      font_surface.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,))
+    )
+
+    font_surface = font.render("press space to restart", True, (255, 255, 255))
+
+    window.blit(
+      font_surface,
+      font_surface.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 100))
+    )
 
   pg.display.update()
 
